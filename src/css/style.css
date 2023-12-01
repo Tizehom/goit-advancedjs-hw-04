@@ -1,0 +1,56 @@
+.body-container {
+  background-color: #6581e0;
+}
+
+.form-container {
+  display: flex;
+  justify-content: center;
+  background-color: #2652e0;
+  padding: 15px;
+}
+
+.search-form {
+  display: block;
+  padding: 15px auto;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-gap: 16px;
+  padding: 16px;
+}
+
+.photo-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.photo-card img {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.info {
+  padding: 8px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  font-size: 12px;
+}
+
+.info-item {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.info-item b {
+  margin-bottom: 4px;
+}
