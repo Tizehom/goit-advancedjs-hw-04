@@ -5,9 +5,11 @@ import iziToast from 'izitoast';
 import 'izitoast/dist/css/iziToast.min.css';
 
 let currentPage = 1;
+let totalHits = 0;
+let totalPages = 0;
+const perPage = 40;
 const gallery = document.querySelector('.gallery');
 let lightbox;
-let totalHits = 0;
 
 document
   .getElementById('search-form')
@@ -15,7 +17,15 @@ document
     event.preventDefault();
     clearGallery();
     currentPage = 1;
-    const searchQuery = event.target.elements.searchQuery.value;
+    const searchQuery = event.target.elements.searchQuery.value.trim();
+    if (!searchQuery) {
+      iziToast.warning({
+        title: 'Warning',
+        message: 'Please enter a search query.',
+        position: 'topRight',
+      });
+      return;
+    }
     await performSearch(searchQuery);
   });
 
@@ -29,16 +39,30 @@ window.addEventListener('scroll', () => {
 });
 
 async function loadMoreImages() {
+  const searchQuery = document
+    .getElementById('search-form')
+    .elements.searchQuery.value.trim();
+  if (!searchQuery || currentPage >= totalPages) return;
+
   currentPage++;
-  const searchQuery =
-    document.getElementById('search-form').elements.searchQuery.value;
   await performSearch(searchQuery);
 }
 
 async function performSearch(query) {
+  query = query.trim();
+  if (!query) {
+    iziToast.warning({
+      title: 'Warning',
+      message: 'Please enter a search query.',
+      position: 'topRight',
+    });
+    return;
+  }
+
   try {
-    const data = await fetchImages(query, currentPage);
+    const data = await fetchImages(query, currentPage, perPage);
     totalHits = data.totalHits;
+    totalPages = Math.ceil(totalHits / perPage);
     if (data.hits.length === 0) {
       iziToast.error({
         title: 'Error',
@@ -69,29 +93,29 @@ async function performSearch(query) {
 function displayImages(images) {
   images.forEach(image => {
     const cardHTML = `
-            <div class="photo-card">
-                <a href="${image.largeImageURL}">
-                    <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
-                </a>
-                <div class="info">
-                    <div class="info-item">
-                        <b>Likes</b>
-                        <span>${image.likes}</span>
-                    </div>
-                    <div class="info-item">
-                        <b>Views</b>
-                        <span>${image.views}</span>
-                    </div>
-                    <div class="info-item">
-                        <b>Comments</b>
-                        <span>${image.comments}</span>
-                    </div>
-                    <div class="info-item">
-                        <b>Downloads</b>
-                        <span>${image.downloads}</span>
-                    </div>
-                </div>
-            </div>`;
+      <div class="photo-card">
+        <a href="${image.largeImageURL}">
+          <img src="${image.webformatURL}" alt="${image.tags}" loading="lazy" />
+        </a>
+        <div class="info">
+          <div class="info-item">
+            <b>Likes</b>
+            <span>${image.likes}</span>
+          </div>
+          <div class="info-item">
+            <b>Views</b>
+            <span>${image.views}</span>
+          </div>
+          <div class="info-item">
+            <b>Comments</b>
+            <span>${image.comments}</span>
+          </div>
+          <div class="info-item">
+            <b>Downloads</b>
+            <span>${image.downloads}</span>
+          </div>
+        </div>
+      </div>`;
     gallery.insertAdjacentHTML('beforeend', cardHTML);
   });
 
@@ -99,6 +123,15 @@ function displayImages(images) {
     lightbox.refresh();
   } else {
     lightbox = new SimpleLightbox('.gallery a', {});
+  }
+
+  if (currentPage >= totalPages) {
+    iziToast.error({
+      title: 'End of Results',
+      message:
+        'Sorry, there are no more images matching your search query. Please try again.',
+      position: 'topRight',
+    });
   }
 
   if (currentPage > 1) {
